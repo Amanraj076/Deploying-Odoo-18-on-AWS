@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deploying Odoo 18 on AWS - Blog by Aman Raj</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(120deg, #c2e9fb, #ffffff);
+      color: #333;
+    }
+    header {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: linear-gradient(90deg, #0077cc, #00c6ff);
+      color: white;
+    }
+    header h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    header p {
+      font-size: 1.25rem;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 2rem;
+    }
+    .accordion {
+      background-color: white;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .accordion-header {
+      background: #0077cc;
+      color: white;
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.25rem;
+      border-bottom: 1px solid #005fa3;
+    }
+    .accordion-content {
+      padding: 1.5rem 2rem;
+      display: none;
+      background-color: #f9f9f9;
+    }
+    .accordion-content ul {
+      padding-left: 1.5rem;
+    }
+    .accordion-content li {
+      margin-bottom: 0.5rem;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #444;
+      background-color: #f2f2f2;
+    }
+    .btn-download {
+      padding: 0.75rem 1.5rem;
+      background: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+          const content = header.nextElementSibling;
+          content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Deploying Odoo 18 on AWS</h1>
+    <p>A Blog Post by Aman Raj</p>
+  </header>
+  <main class="container">
+    <div class="accordion">
+      <div class="accordion-header">1. VPC Setup</div>
+      <div class="accordion-content">
+        <p>Amazon VPC (Virtual Private Cloud) allows us to launch AWS resources into a virtual network. Here's what was done:</p>
+        <ul>
+          <li>Created a custom VPC with a /16 IPv4 CIDR block (e.g., 10.0.0.0/16).</li>
+          <li>Defined public and private subnets in different Availability Zones (AZs) to ensure high availability.</li>
+          <li>Attached an Internet Gateway (IGW) to enable internet access for public subnets.</li>
+          <li>Used a NAT Gateway for instances in private subnets to access the internet securely.</li>
+          <li>Created route tables and associated them properly with public and private subnets.</li>
+          <li>Security Groups were set up to allow access on ports 22 (SSH), 80/443 (HTTP/S), 5432 (PostgreSQL), and other necessary custom ports for XMLRPC/JSONRPC/MQTT.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header">2. Deploying Odoo 18 on Ubuntu EC2</div>
+      <div class="accordion-content">
+        <p><strong>Option A: All-in-One (DB + Odoo on the Same Server)</strong></p>
+        <ul>
+          <li>Launched Ubuntu 22.04 EC2 instance (t2.medium).</li>
+          <li>Updated system and installed dependencies like Python, PostgreSQL, pip, git.</li>
+          <li>Cloned Odoo 18 from GitHub and installed required Python packages using pip.</li>
+          <li>Created a PostgreSQL user for Odoo and ran the Odoo server with necessary arguments.</li>
+        </ul>
+        <p><strong>Option B: DB and App on Separate EC2 Servers</strong></p>
+        <ul>
+          <li>Ran PostgreSQL on one EC2 and Odoo app on another.</li>
+          <li>Updated Odoo config file with private IP of DB instance.</li>
+          <li>Ensured security groups allowed DB access from app server.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header">3. PyCharm Integration</div>
+      <div class="accordion-content">
+        <ul>
+          <li>Opened PyCharm → Deployment → Added new SFTP config with EC2 details.</li>
+          <li>Set interpreter to remote (SSH) for the project.</li>
+          <li>This enabled remote debugging and direct file sync.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header">4. Auto Scaling Setup</div>
+      <div class="accordion-content">
+        <ul>
+          <li>Created Launch Template from existing Odoo EC2 instance.</li>
+          <li>Set up Auto Scaling Group with min 1, max 3 instances.</li>
+          <li>Attached scaling policy triggered at 60% CPU usage.</li>
+          <li>Tested with <code>stress</code> tool to verify instance creation.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header">5. Backup and Restore</div>
+      <div class="accordion-content">
+        <ul>
+          <li>Used EBS Snapshot feature to back up volumes.</li>
+          <li>Created automated backup plan via AWS Backup.</li>
+          <li>Restored by launching new instance and attaching snapshot as volume.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header">6. Issues Faced & Fixes</div>
+      <div class="accordion-content">
+        <ul>
+          <li><strong>PostgreSQL Connection Refused:</strong> Fixed security group and confirmed port 5432 open.</li>
+          <li><strong>wkhtmltopdf Errors:</strong> Installed a custom headless version from GitHub.</li>
+          <li><strong>PyCharm Sync Issues:</strong> Fixed permissions and SFTP root path.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header">7. Do’s and Don’ts</div>
+      <div class="accordion-content">
+        <ul>
+          <li><strong>✅ Do:</strong>
+            <ul>
+              <li>Use IAM roles instead of hardcoded credentials.</li>
+              <li>Keep database in private subnet only.</li>
+              <li>Automate backups regularly.</li>
+            </ul>
+          </li>
+          <li><strong>❌ Don’t:</strong>
+            <ul>
+              <li>Expose PostgreSQL port to the public.</li>
+              <li>Use default VPC for production setups.</li>
+              <li>Ignore proper security group configurations.</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>Crafted with ❤️ by Aman Raj | Hosted on GitHub Pages</p>
+    <a href="Odoo_18_AWS_Deployment_Guide_Aman_Raj.pdf" download class="btn-download">Download PDF</a>
+
+  </footer>
+</body>
+</html>
